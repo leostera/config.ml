@@ -123,12 +123,13 @@ let rec apply_config_on_expression (exp : expression) =
         let exp = apply_config_on_expression exp in
         let cases = apply_config_on_cases cases in
         Pexp_match (exp, cases)
-    | Pexp_fun (arg_label, exp_opt, pat, exp) ->
+    | Pexp_function (params, constraint_, Pfunction_body exp) ->
         let exp = apply_config_on_expression exp in
-        Pexp_fun (arg_label, exp_opt, pat, exp)
-    | Pexp_function cases ->
+        Pexp_function (params, constraint_, Pfunction_body exp)
+    | Pexp_function (params, constraint_, Pfunction_cases (cases, locs, attrs))
+      ->
         let cases = apply_config_on_cases cases in
-        Pexp_function cases
+        Pexp_function (params, constraint_, Pfunction_cases (cases, locs, attrs))
     | Pexp_let (rec_flag, vbs, exp) ->
         let exp = apply_config_on_expression exp in
         Pexp_let (rec_flag, vbs, exp)
@@ -167,8 +168,8 @@ let apply_config_on_module_type mod_type =
 
 let rec apply_config_on_module_expr mod_expr =
   match mod_expr.pmod_desc with
-  | Pmod_apply _ | Pmod_unpack _ | Pmod_extension _ | Pmod_ident _
-  | Pmod_functor _ ->
+  | Pmod_apply _ | Pmod_apply_unit _ | Pmod_unpack _ | Pmod_extension _
+  | Pmod_ident _ | Pmod_functor _ ->
       mod_expr
   | Pmod_structure structs ->
       let new_structs =
